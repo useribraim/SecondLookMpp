@@ -1,0 +1,6 @@
+.private/
+results/
+node_modules/
+.env
+measurements/*.json
+.DS_Store

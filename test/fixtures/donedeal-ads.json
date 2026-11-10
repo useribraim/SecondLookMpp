@@ -1,0 +1,49 @@
+[
+  {
+    "id": 101,
+    "header": "Volkswagen Passat",
+    "friendlyUrl": "https://www.donedeal.ie/cars-for-sale/passat/101",
+    "section": { "name": "cars" },
+    "county": "Co. Dublin",
+    "price": "€8,500",
+    "mileageInKm": 180000,
+    "photos": [{ "medium": "https://example.test/passat.jpg" }],
+    "displayAttributes": [
+      { "name": "make", "value": "Volkswagen" },
+      { "name": "model", "value": "Passat" },
+      { "name": "year", "value": "2012" },
+      { "name": "fuelType", "value": "Diesel" },
+      { "name": "transmission", "value": "Manual" },
+      { "name": "engine", "value": "2.0 L" },
+      { "name": "owners", "value": "2" },
+      { "name": "NCTExpiry", "value": "Oct 2027" }
+    ]
+  },
+  {
+    "id": 102,
+    "title": "Skoda Octavia UK import",
+    "relativeUrl": "/cars-for-sale/octavia/102",
+    "price": "8.5k",
+    "mileageInKm": 0,
+    "displayAttributes": [
+      { "name": "mileage", "value": "100,000 miles" },
+      { "name": "engine", "value": "1598 cc" }
+    ]
+  },
+  {
+    "id": 103,
+    "header": "Ford Fiesta listed under commercial vehicles",
+    "section": { "name": "commercials", "id": 27 },
+    "category": { "name": "Commercial Vehicles" },
+    "priceEuro": 2000,
+    "price": "€2,500",
+    "displayAttributes": [
+      { "name": "make", "value": "Ford" },
+      { "name": "model", "value": "Fiesta" },
+      { "name": "mileage", "value": "110,200 km" }
+    ]
+  },
+  { "id": 104, "price": "POA", "mileageInKm": 0 },
+  { "id": 105, "title": "Missing asking price", "priceEuro": 0, "photos": [], "displayAttributes": [{ "name": "mileage", "value": "unknown" }] },
+  { "id": 106, "description": "Email seller@example.test for details", "section": "damagedcars", "price": "€950.50" }
+]
