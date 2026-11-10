@@ -304,11 +304,12 @@ export async function startService({ secretKey, recipient, sellerKey, price = '0
           else {
             const id = randomBytes(16).toString('base64url');
             const accessToken = randomBytes(32).toString('base64url');
-            // The progress page prompts for the token, so the link itself carries no secret.
-            const progressPage = `${origin}/searches/${id}`;
+            // The link carries the token in the fragment. A browser does not send a fragment to any server,
+            // so the token stays out of request logs. Any person with the full link can open the search.
+            const progressPage = `${origin}/searches/${id}#access=${accessToken}`;
             const accepted = payment.withReceipt(Response.json({
               searchId: id, accessToken, progressPage,
-              message: `To track the progress of this search, open ${progressPage} in a browser and enter the access token.`,
+              message: `To track the progress of this search, open ${progressPage} in a browser. Keep the link private: it opens the search without a prompt.`,
             }, { status: 202 }));
             jobs.create(id, criteria, accepted.headers.get('payment-receipt'), {
               hash: createHash('sha256').update(accessToken).digest('hex'), expiresAt: Date.now() + ACCESS_TOKEN_TTL_MS,

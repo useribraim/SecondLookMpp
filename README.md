@@ -106,14 +106,17 @@ For a manual smoke test, open `/mcp` in Claude Code and check that `car-search` 
 
 ## Public address
 
-The service runs on the Mac (DoneDeal blocks data-center addresses) and Tailscale Funnel publishes it
-at a fixed address: https://car-deal-finder.tail088e75.ts.net
+The service runs on the Mac (DoneDeal blocks data-center addresses). A Cloudflare Tunnel named
+`car-listing-search` publishes it at https://mpp.ibraim.ie
 
 ```bash
-tailscale set --hostname=car-deal-finder   # once
-tailscale funnel --bg 4320                 # once; survives restarts
-scripts/start_public.sh https://car-deal-finder.tail088e75.ts.net
+cloudflared tunnel run --url http://127.0.0.1:4320 car-listing-search   # keep running
+scripts/start_public.sh https://mpp.ibraim.ie
 ```
 
-Through this address, `npx mppx@0.17.4 validate` passes 26 of 26 checks, and a headless Claude Code
+At this address the discovery documents, the free quote and the 402 challenge (realm `mpp.ibraim.ie`)
+responded correctly on 10 November 2026. No paid request ran at this address yet.
+
+The earlier Tailscale Funnel address, https://car-deal-finder.tail088e75.ts.net, still reaches the same
+service. Through it, `npx mppx@0.17.4 validate` passed 26 of 26 checks, and a headless Claude Code
 run with only the landing page prompt paid once and reported in 53 s (10 November 2026).

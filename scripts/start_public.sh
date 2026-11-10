@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Start the service on this Mac for a public tunnel address.
 # Use the HTTPS address from the existing tunnel. For the demo:
-#    scripts/start_public.sh https://car-deal-finder.tail088e75.ts.net
+#    scripts/start_public.sh https://mpp.ibraim.ie
 # This address sets the agent prompt, discovery documents and MPP realm.
 set -euo pipefail
 URL="${1:?public https URL required}"

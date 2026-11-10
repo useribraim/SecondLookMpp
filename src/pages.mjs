@@ -30,6 +30,9 @@ header.bar .brand i { width:9px; height:9px; background:var(--accent); display:b
 header.bar nav a { color:var(--muted); text-decoration:none; margin-left:20px; }
 header.bar nav a:hover { color:var(--strong); }
 header.bar .brand:hover { color:var(--accent); }
+header.bar .left { display:flex; align-items:center; gap:20px; }
+header.bar .source { color:var(--strong); text-decoration:none; display:flex; align-items:center; gap:8px; }
+header.bar .source:hover { color:var(--accent); }
 main { max-width: 720px; margin: 0 auto; padding: 48px 16px 96px; }
 h1 { font-size: 30px; font-weight: 400; line-height: 1.25; margin: 0 0 12px; color: var(--strong); overflow-wrap:anywhere; }
 h2 { font-size: 13px; font-weight: 400; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin: 44px 0 12px; }
@@ -77,7 +80,7 @@ dl.spec dd { margin:0; }
 .links a:hover { border-color:var(--accent); }
 
 /* Flow diagram: a wide drawing on large screens, a stacked list on small screens */
-.diagram { width: min(1130px, calc(100vw - 32px)); margin: 48px 0 52px 50%; transform: translateX(-50%); }
+.diagram { width: min(1130px, calc(100vw - 32px)); margin: 28px 0 40px 50%; transform: translateX(-50%); }
 .diagram svg { display:block; width:100%; height:auto; overflow:visible; }
 .diagram text { font-family: ${MONO}; }
 .diagram .outer { fill:none; stroke:var(--line2); }
@@ -216,7 +219,7 @@ for (const box of document.querySelectorAll('.code')) {
 function page(title, body, extraHead = '', bodyClass = '') {
   return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>${escape(title)}</title><link rel="icon" href="/favicon.svg" type="image/svg+xml"><style>${STYLE}</style>${extraHead}</head><body${bodyClass ? ` class="${bodyClass}"` : ''}>
-<header class="bar"><a class="brand" href="/"><i></i>Second Look</a><nav><a href="/agents.md">agents.md</a><a href="/openapi.json">openapi</a></nav></header>
+<header class="bar"><div class="left"><a class="source" href="https://github.com/useribraim/SecondLookMpp" rel="noopener noreferrer" aria-label="Source code on GitHub"><svg viewBox="0 0 16 16" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z"/></svg></a></div><nav><a href="/agents.md">agents.md</a><a href="/openapi.json">openapi</a></nav></header>
 <main>${body}<footer class="muted">Tempo testnet payments use test money · <a href="/llms.txt">llms.txt</a></footer></main>${SCRIPT}</body></html>`;
 }
 
@@ -332,23 +335,6 @@ ${MPPX} account fund --account car-search --network testnet`;
   return page('Second Look', `
 <h1 class="wordmark">Second Look</h1>
 <p class="tagline">Your sleepless broker for used cars in Ireland.</p>
-${codeTabs([['Paste into your coding agent', agentPrompt(origin)]], 'prompt')}
-<p class="lead">Your agent pays once. Second Look searches DoneDeal and Facebook Marketplace for the ads other buyers miss: misspelled titles, cars in the wrong section, and prices below comparable cars. You get a ranked shortlist with the reason for each find.</p>
-
-<section class="example" aria-labelledby="example-title">
-  <p class="muted">Real find from a paid testnet search · <time datetime="2026-11-10">10 Nov 2026</time></p>
-  <h2 id="example-title">Volkswagen Pass<mark>s</mark>t B8 2015 · <span class="asking">€3,795 asking</span></h2>
-  <p>The seller misspelled "Passat", so a normal search for the model does not show this ad. Second Look found it with a broader keyword search, then read the model and year from the text and photos.</p>
-  <p>The asking price was 42% below our €6,595 estimate from 434 comparable DoneDeal ads. The ad states 280,000 km and gives no NCT date: ask the seller.</p>
-</section>
-
-<ul class="status" aria-label="Service status">
-  <li><span class="lamp"></span>Tempo testnet</li>
-  <li><b>${escape(price)}</b> test pathUSD per search</li>
-${card ? `  <li>or <b>${escape(cardPrice(card))}</b> by card</li>
-` : ''}  <li>searches completed <b>${completed}</b></li>
-</ul>
-
 <div class="diagram" role="img" aria-label="Your agent pays ${escape(price)} test pathUSD for a Second Look report. The service reads DoneDeal and, when available, Facebook Marketplace ads. It inspects text and available photos and may look up NCT and motor tax when it can read a full Irish plate.">
   ${flowDiagram(price)}
   <div class="flow" aria-hidden="true">
@@ -361,36 +347,35 @@ ${card ? `  <li>or <b>${escape(cardPrice(card))}</b> by card</li>
     </div>
   </div>
 </div>
+${codeTabs([['Paste into your coding agent', agentPrompt(origin)]], 'prompt')}
+<p class="lead">Your agent pays once. Second Look finds the ads other buyers miss and ranks the cars worth a call.</p>
+
+<section class="example" aria-labelledby="example-title">
+  <p class="muted">Real find from a paid testnet search · <time datetime="2026-11-10">10 Nov 2026</time></p>
+  <h2 id="example-title">Volkswagen Pass<mark>s</mark>t B8 2015 · <span class="asking">€3,795 asking</span></h2>
+  <p>The seller misspelled "Passat", so a normal search does not show this ad. The price was 42% below our €6,595 estimate from 434 comparable ads.</p>
+</section>
+
+<ul class="status" aria-label="Service status">
+  <li><span class="lamp"></span>Tempo testnet</li>
+  <li><b>${escape(price)}</b> test pathUSD per search</li>
+${card ? `  <li>or <b>${escape(cardPrice(card))}</b> by card</li>
+` : ''}  <li>searches completed <b>${completed}</b></li>
+</ul>
+
 <h2 class="step">what one payment buys</h2>
 <dl class="spec">
-<div><dt>donedeal</dt><dd>Exact matches, plus the damaged, vintage and commercial sections.</dd></div>
-<div><dt>facebook</dt><dd>When available, a signed-in browser searches Marketplace by make and model, model alone, and broader keywords.</dd></div>
-<div><dt>price comparison</dt><dd>An asking-price estimate from comparable DoneDeal ads when there is enough data.</dd></div>
-<div><dt>inspection</dt><dd>Claude reads the ad and any available images for vehicle details and signs of faults. Selected ads with readable plates may get a gov.ie NCT and motor tax check.</dd></div>
-<div><dt>report</dt><dd>One report covering the requested sources, even if nothing matches. See who to call first, what to check, and other possible matches.</dd></div>
+<div><dt>sources</dt><dd>DoneDeal and, when available, Facebook Marketplace.</dd></div>
+<div><dt>price</dt><dd>An estimate from comparable DoneDeal asking prices.</dd></div>
+<div><dt>inspection</dt><dd>Claude reads the text and photos. A readable plate may get a gov.ie NCT and motor tax check.</dd></div>
+<div><dt>report</dt><dd>Who to call first and what to check.</dd></div>
+<div><dt>refund</dt><dd>If a required source fails, the service attempts a refund.</dd></div>
+<div><dt>network</dt><dd>Tempo testnet: no real money moves.${card ? ` A card payment is a ${card.test ? 'test payment' : 'real charge'} of ${escape(cardPrice(card))}${card.test ? ' in a Stripe sandbox' : ''}.` : ''}</dd></div>
 </dl>
-
-<h2 class="step">limits</h2>
-<ul class="limits">
-  <li>Estimates use asking prices from ads.</li>
-  <li>This demo has no data licence from the listing sites.</li>
-  <li>Treat each find as a reason to call. Check the car in person before buying.</li>
-</ul>
+<p class="muted">Estimates use asking prices. This demo has no data licence from the listing sites. Check the car in person before buying.</p>
 
 <h2 class="step">try it by hand</h2>
 ${codeTabs([['1 wallet', wallet], ['2 pay', pay], ['3 report', poll]])}
-<p class="muted">The wallet gets free test tokens from the faucet. Use your access token to poll for the report.</p>
-
-<h2 class="step">payment and refunds</h2>
-<dl class="spec">
-<div><dt>before payment</dt><dd>Check the price and available sources free. Choose the sources before paying.</dd></div>
-<div><dt>after a failure</dt><dd>If a required source fails, the service attempts a refund${card ? ': on testnet for Tempo, or through Stripe for a card' : ' on testnet'}. Check the search status for the result.</dd></div>
-<div><dt>network</dt><dd>Tempo testnet: no real money moves.${card ? ` A card payment is a ${card.test ? 'test payment' : 'real charge'} of ${escape(cardPrice(card))} through a Stripe Shared Payment Token${card.test ? ' in a Stripe sandbox' : ''}.` : ''}</dd></div>
-</dl>
-
-<h2 class="step">for machines</h2>
-<ul class="links"><li><a href="/agents.md">/agents.md</a></li><li><a href="/llms.txt">/llms.txt</a></li><li><a href="/openapi.json">/openapi.json</a></li><li><a href="/health">/health</a></li></ul>
-<p class="muted">The MPP offer is in <code>x-payment-info</code> in the OpenAPI document.</p>
 `, shareHead, 'landing');
 }
 
@@ -465,7 +450,7 @@ ${MPPX} ${origin}/v1/searches --account car-search --network testnet \\
 A 400 response means the criteria are invalid; nothing was paid. Fix them and try again.
 A 503 response includes the reason the search was refused. Nothing was paid.
 A 202 response means the payment succeeded. It contains \`searchId\`, \`accessToken\`, \`progressPage\` and \`message\`.
-Give the user the \`progressPage\` link and the token, so that the user can track the progress in a browser.
+Give the user the \`progressPage\` link. It carries the access token and opens the live progress page directly.
 Keep the token private. It expires after 24 hours.
 
 ${cardSteps}## 3. Wait for the report (free)
@@ -701,6 +686,13 @@ document.getElementById('unlock').addEventListener('submit', async function (eve
   catch (error) { document.getElementById('unlock-error').textContent = 'Search unavailable. Check your access token.'; }
   finally { button.disabled = false; }
 });
+// A progress link carries the token in its fragment. Take it, clear it from the address bar, and open the search.
+var linked = /^#access=([A-Za-z0-9_-]{43})$/.exec(location.hash);
+if (linked) {
+  history.replaceState(null, '', location.pathname);
+  document.getElementById('access-token').value = linked[1];
+  document.getElementById('unlock').requestSubmit();
+}
 </script>`);
 }
 

@@ -53,8 +53,10 @@ test('server: pages, validation before payment, 402 challenge, report page', asy
     assert.match(landing.headers.get('content-type'), /text\/html/);
     const html = await landing.text();
     assert.match(html, /Second Look/);
-    assert.ok(html.indexOf('class="wordmark"') < html.indexOf('class="code prompt"'));
-    assert.ok(html.indexOf('class="code prompt"') < html.indexOf('class="diagram"'));
+    assert.ok(html.indexOf('class="wordmark"') < html.indexOf('class="diagram"'));
+    assert.ok(html.indexOf('class="diagram"') < html.indexOf('class="code prompt"'));
+    assert.ok(html.includes('<header class="bar"><div class="left"><a class="source" href="https://github.com/useribraim/SecondLookMpp"'));
+    assert.ok(!html.includes('class="brand"'));
     assert.ok(html.includes(`Read ${service.url}/SKILL.md`));
     assert.ok(html.includes(`content="${service.url}/share.png"`));
     assert.match(html, /Volkswagen Pass<mark>s<\/mark>t B8 2015/);
@@ -188,8 +190,8 @@ test('verified payments issue independent tokens and every search read requires 
     const [first, second] = await Promise.all([buy('Skoda'), buy('Volkswagen')]);
     assert.equal(transfers.length, 2);
     assert.deepEqual(Object.keys(first).sort(), ['accessToken', 'message', 'progressPage', 'searchId']);
-    assert.equal(first.progressPage, `${service.url}/searches/${first.searchId}`);
-    assert.ok(first.message.includes(first.progressPage) && !first.message.includes(first.accessToken));
+    assert.equal(first.progressPage, `${service.url}/searches/${first.searchId}#access=${first.accessToken}`);
+    assert.ok(first.message.includes(first.progressPage));
     assert.match(first.searchId, /^[A-Za-z0-9_-]{22}$/);
     assert.match(first.accessToken, /^[A-Za-z0-9_-]{43}$/);
     assert.equal(Buffer.from(first.accessToken, 'base64url').length, 32);
