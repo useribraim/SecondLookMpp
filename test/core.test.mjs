@@ -359,3 +359,11 @@ test('rank: a mileage suspicion makes a find uncertain, not rejected', () => {
   assert.equal(result.verdict, 'uncertain');
   assert.ok(result.reasons.includes('mileage may be inconsistent: check the NCT history'));
 });
+
+test('a command that boat refuses reports the refusal and its code', async () => {
+  const { parseCollectorOutput } = await import('../src/facebook.mjs');
+  const refusal = '{"code":"machine_not_running","error":"Sandbox bx_1 is stopped.","event":"error","status":409}\n';
+  assert.throws(() => parseCollectorOutput(refusal), (error) => error.code === 'machine_not_running' && /Sandbox bx_1 is stopped/.test(error.message));
+  const envelope = JSON.stringify({ stdout: 'noise\n{"ok":true,"cards":[]}', stderr: '' });
+  assert.deepEqual(parseCollectorOutput(envelope), { ok: true, cards: [] });
+});

@@ -90,6 +90,8 @@ export function parseCollectorOutput(raw) {
   for (const line of raw.trim().split('\n')) {
     if (!line.trim()) continue;
     const frame = JSON.parse(line);
+    // boat refused the command before it ran, for example {"event": "error", "code": "machine_not_running"}.
+    if (frame.event === 'error') throw Object.assign(new Error(`boat exec refused: ${frame.error ?? frame.code}`), { code: frame.code });
     if (frame.type === 'stdout') stdout += frame.data;
     else if (frame.type === 'stderr') stderr += frame.data;
     else if (typeof frame.stdout === 'string') {
@@ -140,8 +142,7 @@ export function facebookCollectorFromEnv(env = process.env) {
       return finish(JSON.parse(stdout.slice(start)));
     };
   }
-  return async function collectFacebook(criteria) {
-    const command = `cd ${COLLECTOR_DIR} && MAX_DETAILS=${maxDetails} SCROLLS=${scrolls} TABS=${tabs} node collect_marketplace.mjs ${shellQuote(JSON.stringify(criteria))}`;
+  async function execute(command) {
     let raw;
     try {
       ({ stdout: raw } = await run(boatBinary(env), ['exec', sandboxId, '--json', '--timeout', String(TIMEOUT_SECONDS), command], { maxBuffer: 64 * 1024 * 1024, timeout: (TIMEOUT_SECONDS + 60) * 1000 }));
@@ -149,6 +150,17 @@ export function facebookCollectorFromEnv(env = process.env) {
       raw = error.stdout;
       if (!raw) throw new Error(`boat exec failed: ${(error.stderr || error.message).slice(0, 300)}`);
     }
-    return finish(parseCollectorOutput(raw));
+    return parseCollectorOutput(raw);
+  }
+  return async function collectFacebook(criteria) {
+    const command = `cd ${COLLECTOR_DIR} && MAX_DETAILS=${maxDetails} SCROLLS=${scrolls} TABS=${tabs} node collect_marketplace.mjs ${shellQuote(JSON.stringify(criteria))}`;
+    try {
+      return finish(await execute(command));
+    } catch (error) {
+      if (error.code !== 'machine_not_running') throw error;
+      // The sandbox stops when its lifetime ends. Resume it from its snapshot and run the command again.
+      await run(boatBinary(env), ['resume', sandboxId, '--json'], { timeout: 180 * 1000 });
+      return finish(await execute(command));
+    }
   };
 }

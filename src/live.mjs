@@ -7,8 +7,9 @@ import { createInterface } from 'node:readline';
 import { fileURLToPath } from 'node:url';
 
 const MAX_BYTES = 25_000;
-// A frame older than this is not sent. A busy sandbox delivers most frames 0.3 to 1 second late.
-const MAX_AGE_MS = 1_000;
+// A frame older than this is not sent. The capture sends one frame each second, and a busy sandbox
+// delivers most frames 0.3 to 1 second late, so a shorter limit would drop frames and leave the view blank.
+const MAX_AGE_MS = 5_000;
 const CAPTURE_SCRIPT = new URL('../sandbox/capture_preview.mjs', import.meta.url);
 const CAPTURE_CODE = readFileSync(CAPTURE_SCRIPT).toString('base64');
 

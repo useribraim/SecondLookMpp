@@ -2,11 +2,14 @@
 import { spawn, spawnSync } from 'node:child_process';
 
 const MAX_BYTES = 25_000;
-const fps = 15;
+// One frame each second: a slow picture that always arrives is better than a fast one that is often dropped.
+const fps = 1;
+// Tried in order until the frame fits MAX_BYTES. A screen full of photographs needs the smaller sizes.
+const REDUCTIONS = [['-quality', '20'], ['-quality', '10'], ['-resize', '75%', '-quality', '12'], ['-resize', '50%', '-quality', '12']];
 const captureId = process.argv.find((arg) => /^car-preview-[a-f0-9]{24}$/.test(arg));
 if (captureId) process.title = captureId;
 const input = process.argv.includes('--test-pattern')
-  ? ['-re', '-f', 'lavfi', '-i', 'testsrc2=size=1920x800:rate=15']
+  ? ['-re', '-f', 'lavfi', '-i', 'testsrc2=size=1920x800:rate=' + fps]
   : ['-f', 'x11grab', '-framerate', String(fps), '-draw_mouse', '0',
       '-video_size', '1920x800', '-i', ':0.0+0,180'];
 const capture = spawn('ffmpeg', [
@@ -27,17 +30,19 @@ capture.stdout.on('data', (chunk) => {
   while ((end = pending.indexOf(Buffer.from([0xff, 0xd9]))) !== -1) {
     let jpeg = pending.subarray(0, end + 2);
     pending = pending.subarray(end + 2);
+    const original = jpeg;
     const at = Date.now();
     if (at < nextFrameAt || process.stdout.writableNeedDrain) continue;
-    if (jpeg.length > MAX_BYTES) {
-      const smaller = spawnSync('convert', ['jpeg:-', '-strip', '-quality', '35', 'jpeg:-'], {
-        input: jpeg, maxBuffer: 100_000, timeout: 45,
+    for (const reduction of REDUCTIONS) {
+      if (jpeg.length <= MAX_BYTES) break;
+      const smaller = spawnSync('convert', ['jpeg:-', '-strip', ...reduction, 'jpeg:-'], {
+        input: original, maxBuffer: 400_000, timeout: 400,
       });
-      jpeg = smaller.status === 0 ? smaller.stdout : Buffer.alloc(0);
+      if (smaller.status === 0 && smaller.stdout.length) jpeg = smaller.stdout;
     }
-    if (!jpeg.length || jpeg.length > MAX_BYTES || Date.now() - at >= 1000 / fps) continue;
+    if (jpeg.length > MAX_BYTES) continue;
     // Accept normal timing jitter, but never send a burst of queued frames.
-    nextFrameAt = at + 30;
+    nextFrameAt = at + 500;
     process.stdout.write(at + ' ' + jpeg.toString('base64') + '\n');
   }
   if (pending.length > 512_000) capture.kill();

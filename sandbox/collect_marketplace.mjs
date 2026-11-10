@@ -2,6 +2,7 @@
 // Usage: node collect_marketplace.mjs '<criteria JSON>'
 // Read-only: it opens search and item pages and never clicks, messages or posts.
 import { spawn } from 'node:child_process';
+import { rm } from 'node:fs/promises';
 import { chromium } from 'playwright-core';
 
 // A profile owned by the desktop user on display :0. (boat's browser-only view runs as a separate
@@ -30,6 +31,9 @@ async function ensureChrome() {
   // A Chrome that already holds the profile (for example the browser view) must close first.
   spawn('pkill', ['-f', `user-data-dir=${PROFILE}`]).on('error', () => {});
   await sleep(1500);
+  // A sandbox resumed from a snapshot gets a new host name, and the lock of the old host then blocks
+  // Chrome ("profile appears to be in use ... on another computer"). No Chrome holds the profile now.
+  for (const name of ['SingletonLock', 'SingletonSocket', 'SingletonCookie']) await rm(`${PROFILE}/${name}`, { force: true });
   const chrome = spawn('google-chrome-stable', [
     `--user-data-dir=${PROFILE}`, `--remote-debugging-port=${PORT}`, '--remote-debugging-address=127.0.0.1',
     '--no-first-run', '--no-default-browser-check', '--window-size=1600,1000',
