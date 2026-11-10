@@ -26,7 +26,7 @@ Optional parts, each switched on by a line in `.env`:
 - With neither key, a keyword check runs and every find is marked uncertain.
 - `node scripts/probe_classifier.mjs <DoneDeal ad URL> ...` classifies single ads to check the setup.
 - `BOAT_SANDBOX_ID=...` turns on Facebook Marketplace. Run `boat login`, then `scripts/prepare_facebook_sandbox.sh`, and sign in to Facebook yourself in the printed browser link.
-- The Marketplace preview shares one JPEG feed across worker tiles and targets 15 fps. It needs FFmpeg in Boat, with ImageMagick `convert` for oversized frames. Each delivered JPEG is at most 25,000 bytes. Set `LIVE_VIEW=0` to disable the preview.
+- The Marketplace preview shares one JPEG feed across worker tiles and sends one frame each second. An oversized frame is reduced in quality, then in size, until it fits. It needs FFmpeg in Boat, with ImageMagick `convert` for oversized frames. Each delivered JPEG is at most 25,000 bytes. Set `LIVE_VIEW=0` to disable the preview.
 
 To try the preview locally with FFmpeg, invented listings, and a moving test pattern:
 
@@ -115,7 +115,13 @@ scripts/start_public.sh https://mpp.ibraim.ie
 ```
 
 At this address the discovery documents, the free quote and the 402 challenge (realm `mpp.ibraim.ie`)
-responded correctly on 10 November 2026. No paid request ran at this address yet.
+responded correctly on 10 November 2026.
+
+At 17:44 GMT on 10 November 2026, `npx mppx@0.18.0 validate https://mpp.ibraim.ie --yes` passed 32 of 32
+checks. The run paid the Tempo offer (testnet pathUSD) and the Stripe offer (sandbox key, test Shared
+Payment Token). Both paid searches finished with a report. Without `MPPX_STRIPE_SECRET_KEY` and `--yes`,
+the validator skips the card payment and passes 30 of 30 other checks. Real behavior on testnet and in a
+Stripe sandbox; no real money moved.
 
 The earlier Tailscale Funnel address, https://car-deal-finder.tail088e75.ts.net, still reaches the same
 service. Through it, `npx mppx@0.17.4 validate` passed 26 of 26 checks, and a headless Claude Code
