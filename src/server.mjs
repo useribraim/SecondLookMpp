@@ -346,6 +346,8 @@ export async function startService({ secretKey, recipient, sellerKey, price = '0
       response = Response.json({ error: 'Not found' }, { status: 404 });
     }
     response.headers.set('cache-control', 'no-store');
+    // RFC 8631: point clients at the machine-readable description of the service.
+    response.headers.append('link', '</openapi.json>; rel="service-desc"; type="application/json"');
     // Log the route template, never the caller's URL, headers or body.
     appendFileSync(`${dataDir}/requests.jsonl`, JSON.stringify({ at: new Date().toISOString(), method: request.method, path: route?.path ?? '<unmatched>', status: response.status, receipt: Boolean(response.headers.get('payment-receipt')) }) + '\n', { mode: 0o600 });
     return response;
