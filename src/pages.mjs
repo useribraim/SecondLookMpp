@@ -538,7 +538,7 @@ ${find.cautions ? `<p class="muted warn">Caution: ${escape(find.cautions.join(';
 // The page polls /v1/searches/{id}/events. Client script uses no template literals (it sits in one).
 const LIVE_STYLE = `<style>
 .live main { max-width: 1120px; }
-.live-workspace { display:grid; grid-template-columns:168px minmax(0, 1fr); gap:24px; align-items:start; }
+.live-workspace { display:grid; grid-template-columns:240px minmax(0, 1fr); gap:24px; align-items:start; }
 .live-workspace:has(> .worker-rail[hidden]) { grid-template-columns:minmax(0, 1fr); }
 .search-stage { min-width:0; border:1px solid var(--line); background:var(--panel); padding:20px; }
 .tiles { display:flex; gap:12px; overflow-x:auto; padding-bottom:5px; margin-bottom:12px; }
@@ -891,10 +891,9 @@ async function streamShots(controller) {
       while (newest && !controller.signal.aborted) {
         var frame = newest;
         newest = undefined;
-        if (Date.now() - frame.at > 350) continue;
         var image = await createImageBitmap(new Blob([frame.jpeg], { type: 'image/jpeg' }));
         try {
-          if (controller.signal.aborted || Date.now() - frame.at > 350) continue;
+          if (controller.signal.aborted) continue;
           document.querySelectorAll('.tile .shot').forEach(function (shot) {
             var columns = Number(shot.dataset.windows), index = Number(shot.dataset.index);
             var x = Math.floor(index * image.width / columns);

@@ -7,6 +7,8 @@ import { createInterface } from 'node:readline';
 import { fileURLToPath } from 'node:url';
 
 const MAX_BYTES = 25_000;
+// A frame older than this is not sent. A busy sandbox delivers most frames 0.3 to 1 second late.
+const MAX_AGE_MS = 1_000;
 const CAPTURE_SCRIPT = new URL('../sandbox/capture_preview.mjs', import.meta.url);
 const CAPTURE_CODE = readFileSync(CAPTURE_SCRIPT).toString('base64');
 
@@ -52,7 +54,7 @@ export function startLiveCapture(env = process.env, { testPattern = false } = {}
       const match = /^(\d{13}) ([A-Za-z0-9+/=]{1,33336})$/.exec(line);
       if (!match) return;
       const at = Number(match[1]);
-      if (Date.now() - at > 350) return;
+      if (Date.now() - at > MAX_AGE_MS) return;
       const jpeg = Buffer.from(match[2], 'base64');
       if (jpeg.length > MAX_BYTES || jpeg[0] !== 0xff || jpeg[1] !== 0xd8 ||
           jpeg.at(-2) !== 0xff || jpeg.at(-1) !== 0xd9) return;
@@ -113,7 +115,7 @@ export function startLiveCapture(env = process.env, { testPattern = false } = {}
           startCapture();
         },
         async pull() {
-          if (latest === last || !latest || Date.now() - latest.at > 350) {
+          if (latest === last || !latest || Date.now() - latest.at > MAX_AGE_MS) {
             await new Promise((resolve) => { waiting = resolve; });
           }
           if (!viewers.has(wake) || latest === last || !latest) return;
