@@ -264,7 +264,7 @@ export async function startService({ secretKey, recipient, sellerKey, price = '0
       response = Response.json({ ok: true, testnet: true, chainId: CHAIN_ID, price, classifier: classifierAvailable(), facebook: Boolean(process.env.BOAT_SANDBOX_ID || process.env.FACEBOOK_COLLECTOR_DIR) });
     } else if (route?.name === 'landing') {
       response = new Response(landingPage({
-        origin, price, card: card && { price: card.price, currency: card.currency }, queueLength: queue.length, ...jobs.counts(),
+        origin, price, card: card && { price: card.price, currency: card.currency, test: card.secretKey.includes('_test_') }, queueLength: queue.length, ...jobs.counts(),
         facebookEnabled: Boolean(process.env.BOAT_SANDBOX_ID || process.env.FACEBOOK_COLLECTOR_DIR),
         classifierEnabled: classifierAvailable(),
       }), { headers: { 'content-type': 'text/html; charset=utf-8' } });
@@ -273,7 +273,7 @@ export async function startService({ secretKey, recipient, sellerKey, price = '0
     } else if (route?.name === 'share') {
       response = new Response(SHARE_IMAGE, { headers: { 'content-type': 'image/png' } });
     } else if (route?.name === 'agents') {
-      response = new Response(agentInstructions({ origin, price, card: card && { price: card.price, currency: card.currency } }), { headers: { 'content-type': 'text/markdown; charset=utf-8' } });
+      response = new Response(agentInstructions({ origin, price, card: card && { price: card.price, currency: card.currency, test: card.secretKey.includes('_test_') } }), { headers: { 'content-type': 'text/markdown; charset=utf-8' } });
     } else if (route?.name === 'llms') {
       response = new Response(describe(origin, price, CHAIN_ID, card), { headers: { 'content-type': 'text/plain; charset=utf-8' } });
     } else if (route?.name === 'openapi') {
@@ -304,7 +304,12 @@ export async function startService({ secretKey, recipient, sellerKey, price = '0
           else {
             const id = randomBytes(16).toString('base64url');
             const accessToken = randomBytes(32).toString('base64url');
-            const accepted = payment.withReceipt(Response.json({ searchId: id, accessToken }, { status: 202 }));
+            // The progress page prompts for the token, so the link itself carries no secret.
+            const progressPage = `${origin}/searches/${id}`;
+            const accepted = payment.withReceipt(Response.json({
+              searchId: id, accessToken, progressPage,
+              message: `To track the progress of this search, open ${progressPage} in a browser and enter the access token.`,
+            }, { status: 202 }));
             jobs.create(id, criteria, accepted.headers.get('payment-receipt'), {
               hash: createHash('sha256').update(accessToken).digest('hex'), expiresAt: Date.now() + ACCESS_TOKEN_TTL_MS,
             });

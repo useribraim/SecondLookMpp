@@ -39,7 +39,8 @@ test('MCP tools handle 402, payment, 202, protected progress and both ranked lis
     } });
     assert.equal(bought.isError, undefined, JSON.stringify(bought.content));
     const access = bought.structuredContent;
-    assert.deepEqual(Object.keys(access).sort(), ['accessToken', 'searchId']);
+    assert.deepEqual(Object.keys(access).sort(), ['accessToken', 'message', 'progressPage', 'searchId']);
+    assert.ok(access.progressPage.endsWith(`/searches/${access.searchId}`));
     assert.deepEqual(transfers, [{ from: account.address.toLowerCase(), to: recipient.toLowerCase(), amount: 50_000n, currency: CURRENCY }]);
 
     const read = (credentials) => client.callTool({ name: 'get_car_search', arguments: credentials });

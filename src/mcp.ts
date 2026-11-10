@@ -10,7 +10,7 @@ import { CHAIN_ID, CURRENCY } from './payment_config.mjs';
 
 const searchId = z.string().regex(/^[A-Za-z0-9_-]{22}$/);
 const accessToken = z.string().regex(/^[A-Za-z0-9_-]{43}$/);
-const acceptedSearch = z.object({ searchId, accessToken });
+const acceptedSearch = z.object({ searchId, accessToken, progressPage: z.string().url(), message: z.string().max(500) });
 const optionalInt = z.number().int().nullish();
 const criteria = z.strictObject({
   vehicles: z.array(z.object({ make: z.string(), model: z.string().optional() })).min(1).max(4),

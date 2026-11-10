@@ -126,7 +126,7 @@ function describeCriteria(criteria) {
   return JSON.stringify({
     vehicles: criteria.vehicles, yearFrom: criteria.yearFrom, yearTo: criteria.yearTo,
     mileageMaxKm: criteria.mileageMaxKm ?? null, fuelTypes: criteria.fuelTypes ?? null,
-    engineLitres: criteria.engineLitres ?? null,
+    requiredEngineSizeInLitresExactly: criteria.engineLitres ?? null,
   });
 }
 

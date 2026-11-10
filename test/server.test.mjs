@@ -187,7 +187,9 @@ test('verified payments issue independent tokens and every search read requires 
     const started = Date.now();
     const [first, second] = await Promise.all([buy('Skoda'), buy('Volkswagen')]);
     assert.equal(transfers.length, 2);
-    assert.deepEqual(Object.keys(first).sort(), ['accessToken', 'searchId']);
+    assert.deepEqual(Object.keys(first).sort(), ['accessToken', 'message', 'progressPage', 'searchId']);
+    assert.equal(first.progressPage, `${service.url}/searches/${first.searchId}`);
+    assert.ok(first.message.includes(first.progressPage) && !first.message.includes(first.accessToken));
     assert.match(first.searchId, /^[A-Za-z0-9_-]{22}$/);
     assert.match(first.accessToken, /^[A-Za-z0-9_-]{43}$/);
     assert.equal(Buffer.from(first.accessToken, 'base64url').length, 32);

@@ -49,6 +49,8 @@ The paid route also accepts a card when these values are in `.env`:
 | `CARD_PRICE` | Optional. Default `0.50`, the Stripe minimum for a card. |
 | `CARD_CURRENCY` | Optional. Default `eur`. |
 
+To pay one search by card in a Stripe sandbox, run `node --env-file=.env scripts/buy_search_with_card.mjs`. It gets a test Shared Payment Token from Stripe's sandbox helper and pays the `stripe` offer. An outside agent gets its token from its own wallet, for example `npx @stripe/link-cli mpp pay` (see `/SKILL.md`, step 2b).
+
 Each method has its own price: Tempo stays at `SEARCH_PRICE` test pathUSD. A method is offered only when its refund works: Tempo needs `TEMPO_SELLER_KEY`, and a card uses the Stripe Refunds API. If a required source fails after a card payment, the service refunds the PaymentIntent with an idempotency key per search. `test/card_payment.test.mjs` covers this flow against a simulated Stripe API.
 
 ## Endpoints

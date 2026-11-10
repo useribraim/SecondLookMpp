@@ -38,7 +38,8 @@ export function describe(origin, price, chainId, card) {
 
 1. Quote for free. POST your criteria to ${origin}/v1/searches/quote and check \`canPay\`.
 2. Buy one search for ${price} test pathUSD using MPP on Tempo Moderato (${chainId}). ${card ? `Or pay ${Number(card.price).toFixed(2)} ${card.currency.toUpperCase()} by card through a Stripe Shared Payment Token. ` : ''}POST the same criteria to ${origin}/v1/searches. Answer the 402 Payment challenge with an MPP client. The 202 contains \`searchId\` and \`accessToken\`.
-3. Poll the status endpoint for free using the Bearer token. It expires after 24 hours. A failed required source triggers a refund attempt: on testnet for Tempo, or through Stripe for a card.
+3. Give the buyer the \`progressPage\` link and the \`accessToken\` from the 202, so that the buyer can track the progress in a browser.
+4. Poll the status endpoint for free using the Bearer token. It expires after 24 hours. A failed required source triggers a refund attempt: on testnet for Tempo, or through Stripe for a card.
 
 Quote:
 
@@ -142,9 +143,12 @@ export function openapi(origin, { price, amount, recipient, currency, chainId, c
       operation['x-payment-info'] = { offers: cardOffer ? [offer, cardOffer] : [offer] };
       operation.responses = {
         202: { ...jsonResponse('Payment verified and search accepted', {
-          type: 'object', required: ['searchId', 'accessToken'], additionalProperties: false,
-          properties: { searchId, accessToken: { ...searchToken, description: 'Private Bearer token valid for 24 hours.' } },
-        }, { searchId: exampleId, accessToken: exampleToken }),
+          type: 'object', required: ['searchId', 'accessToken', 'progressPage', 'message'], additionalProperties: false,
+          properties: { searchId, accessToken: { ...searchToken, description: 'Private Bearer token valid for 24 hours.' },
+            progressPage: { type: 'string', format: 'uri', description: 'Page that shows the progress and the report. It prompts for the access token.' },
+            message: { ...string, description: 'Instruction to give to the buyer.' } },
+        }, { searchId: exampleId, accessToken: exampleToken, progressPage: `${origin}/searches/${exampleId}`,
+          message: `To track the progress of this search, open ${origin}/searches/${exampleId} in a browser and enter the access token.` }),
           headers: { 'Payment-Receipt': { description: 'MPP receipt', schema: string } } },
         400: error('Invalid criteria. Payment was not requested.'),
         402: {

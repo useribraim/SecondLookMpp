@@ -385,7 +385,7 @@ ${codeTabs([['1 wallet', wallet], ['2 pay', pay], ['3 report', poll]])}
 <dl class="spec">
 <div><dt>before payment</dt><dd>Check the price and available sources free. Choose the sources before paying.</dd></div>
 <div><dt>after a failure</dt><dd>If a required source fails, the service attempts a refund${card ? ': on testnet for Tempo, or through Stripe for a card' : ' on testnet'}. Check the search status for the result.</dd></div>
-<div><dt>network</dt><dd>Tempo testnet: no real money moves.${card ? ` A card payment is a real charge of ${escape(cardPrice(card))} through a Stripe Shared Payment Token.` : ''}</dd></div>
+<div><dt>network</dt><dd>Tempo testnet: no real money moves.${card ? ` A card payment is a ${card.test ? 'test payment' : 'real charge'} of ${escape(cardPrice(card))} through a Stripe Shared Payment Token${card.test ? ' in a Stripe sandbox' : ''}.` : ''}</dd></div>
 </dl>
 
 <h2 class="step">for machines</h2>
@@ -395,11 +395,30 @@ ${codeTabs([['1 wallet', wallet], ['2 pay', pay], ['3 report', poll]])}
 }
 
 export function agentInstructions({ origin, price, card }) {
+  // Card steps for an agent that holds a Link agent wallet. The command comes from Stripe's MPP guide.
+  const cardSteps = card ? `## 2b. Pay by card instead (only when the user asks)
+
+The same route accepts a Stripe Shared Payment Token (SPT). The 402 challenge lists two methods:
+\`tempo\` (${price} test pathUSD) and \`stripe\` (${cardPrice(card)}). Your client answers the method that it supports.
+An SPT lets this one seller charge one amount, one time. You never send a card number.
+
+\`\`\`bash
+npx @stripe/link-cli auth login
+npx @stripe/link-cli mpp pay ${origin}/v1/searches${card.test ? ' --test' : ''} --method POST \\
+  --header "Content-Type: application/json" \\
+  --data '${JSON.stringify(EXAMPLE)}' \\
+  --context "One used-car search on Second Look for my user, who asked for it and approved the ${cardPrice(card)} card charge for this search."
+\`\`\`
+
+The user approves the spend request in Link. The response is the same 202 with \`searchId\` and \`accessToken\`.
+${card.test ? 'This service runs in a Stripe sandbox: a card payment is a test payment and no real money moves.' : `This is a real charge of ${cardPrice(card)}.`}
+
+` : '';
   return `---\nname: second-look\ndescription: Rank Irish used-car listings for one testnet MPP charge.\n---\n\n# Second Look: instructions for AI agents
 
 Service: ${origin}
 Purpose: compare asking prices and shortlist used cars in Ireland from DoneDeal and, when available, Facebook Marketplace.
-Payment: one MPP charge of ${price} test pathUSD on Tempo testnet (chain 42431). No real money.${card ? `\nCard: the same search costs ${cardPrice(card)} by card through a Stripe Shared Payment Token. This is real money.` : ''}
+Payment: one MPP charge of ${price} test pathUSD on Tempo testnet (chain 42431). No real money.${card ? `\nCard: the same search costs ${cardPrice(card)} by card through a Stripe Shared Payment Token (see step 2b). ${card.test ? 'Stripe sandbox: no real money.' : 'This is real money.'}` : ''}
 
 ## Rules
 
@@ -445,10 +464,11 @@ ${MPPX} ${origin}/v1/searches --account car-search --network testnet \\
 
 A 400 response means the criteria are invalid; nothing was paid. Fix them and try again.
 A 503 response includes the reason the search was refused. Nothing was paid.
-A 202 response means the payment succeeded. It contains \`searchId\` and \`accessToken\`.
+A 202 response means the payment succeeded. It contains \`searchId\`, \`accessToken\`, \`progressPage\` and \`message\`.
+Give the user the \`progressPage\` link and the token, so that the user can track the progress in a browser.
 Keep the token private. It expires after 24 hours.
 
-## 3. Wait for the report (free)
+${cardSteps}## 3. Wait for the report (free)
 
 \`\`\`bash
 curl -sS -H "Authorization: Bearer $ACCESS_TOKEN" \\
@@ -992,7 +1012,7 @@ ${liveBlock}${script}`);
     ? new Intl.DateTimeFormat('en-IE', { dateStyle: 'medium', timeZone: 'Europe/Dublin' }).format(generatedAt)
     : '';
   return page('Car search report', `<h1>${escape(wanted)}</h1>
-<p class="lead">${escape(c.yearFrom)}-${escape(c.yearTo)} · up to ${money(c.priceMaxEur)}${c.mileageMaxKm ? ` · up to ${c.mileageMaxKm.toLocaleString('en-IE')} km` : ''}${c.seatsMin ? ` · ${escape(c.seatsMin)}+ seats` : ''}${c.county ? ` · ${escape(c.county)}` : ''}</p>
+<p class="lead">${escape(c.yearFrom)}-${escape(c.yearTo)} · up to ${money(c.priceMaxEur)}${c.mileageMaxKm ? ` · up to ${c.mileageMaxKm.toLocaleString('en-IE')} km` : ''}${c.engineLitres ? ` · ${escape(Number(c.engineLitres).toFixed(1))} litre` : ''}${c.fuelTypes?.length ? ` · ${escape(c.fuelTypes.join(' or ').toLowerCase())}` : ''}${c.seatsMin ? ` · ${escape(c.seatsMin)}+ seats` : ''}${c.county ? ` · ${escape(c.county)}` : ''}</p>
 <p class="muted snapshot">${date ? `<time datetime="${escape(r.generatedAt)}">${escape(date)}</time> · ` : ''}${r.inspected} ads inspected in ${Math.round(r.elapsedMs / 1000)} s</p>
 <ul class="links" aria-label="Report sections">
   <li><a href="#calls">${r.shortlist ? 'Shortlist' : 'Worth a call'} · ${shortlist.length}</a></li>

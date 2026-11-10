@@ -81,6 +81,7 @@ log(`on chain: block ${tx.blockNumber}, 1 matching transfer of ${Number(offer.am
 // 5. Poll the free status URL.
 const statusUrl = `${serviceUrl}/v1/searches/${accepted.searchId}`;
 log(`search ${accepted.searchId} accepted; polling ${statusUrl}`);
+if (accepted.message) log(accepted.message);
 let status;
 let lastProgress;
 let refundDeadline;
